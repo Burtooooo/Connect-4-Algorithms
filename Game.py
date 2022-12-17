@@ -62,6 +62,17 @@ class Game:
         # Check for end via win or via no moves left
         return self.winning_move(P1_PIECE) or self.winning_move(P2_PIECE) or len(self.get_valid_locations()) == 0
 
+    def game_score(self):
+        #For terminal game return score 
+        if (self.winning_move(P1_PIECE)):
+            return 1
+        if (self.winning_move(P2_PIECE)):
+            return -1
+        if (len(self.get_valid_locations()) == 0):
+            return 0
+
+        raise Exception("Only call game_score on terminal board")
+
     def print_board(self):
         print(np.flip(self.board, 0))
         return 0
