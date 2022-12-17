@@ -61,3 +61,4 @@ class Game:
 
     def print_board(board):
         print(np.flip(board, 0))
+        return 0
