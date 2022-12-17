@@ -17,48 +17,48 @@ class Game:
         board = np.zeros((ROW_COUNT, COL_COUNT))
         return board
 
-    def drop_piece(self, board, row, col, piece):
-        board[row][col] = piece
+    def drop_piece(self, row, col, piece):
+        self.board[row][col] = piece
 
-    def is_valid_location(self, board, col):
-        return board[ROW_COUNT - 1][col] == 0
+    def is_valid_location(self, col):
+        return self.board[ROW_COUNT - 1][col] == 0
 
-    def get_valid_locations(self, board):
+    def get_valid_locations(self):
         valid_locations = []
         for col in range(COL_COUNT):
-            if self.is_valid_location(board, col):
+            if self.is_valid_location(col):
                 valid_locations.append(col)
         return valid_locations
 
-    def winning_move(self, board, piece):
+    def winning_move(self, piece):
         # Check horizontal locations for win
         for c in range(COL_COUNT - 3):
             for r in range(ROW_COUNT):
-                if board[r][c] == piece and board[r][c + 1] == piece and board[r][c + 2] == piece and board[r][c + 3] == piece:
+                if self.board[r][c] == piece and self.board[r][c + 1] == piece and self.board[r][c + 2] == piece and self.board[r][c + 3] == piece:
                     return True
         
         # Check vertical locations for win
         for c in range(COL_COUNT):
             for r in range(ROW_COUNT - 3):
-                if board[r][c] == piece and board[r + 1][c] == piece and board[r + 2][c] == piece and board[r + 3][c] == piece:
+                if self.board[r][c] == piece and self.board[r + 1][c] == piece and self.board[r + 2][c] == piece and self.board[r + 3][c] == piece:
                     return True
 
         # Check positive-slope diagonals for win
         for c in range(COL_COUNT - 3):
             for r in range(ROW_COUNT - 3):
-                if board[r][c] == piece and board[r + 1][c + 1] == piece and board[r + 2][c + 2] == piece and board[r + 3][c + 3] == piece:
+                if self.board[r][c] == piece and self.board[r + 1][c + 1] == piece and self.board[r + 2][c + 2] == piece and self.board[r + 3][c + 3] == piece:
                     return True
 
         # Check negative-slope diagonals for win
         for c in range(COL_COUNT - 3):
             for r in range(3, ROW_COUNT):
-                if board[r][c] == piece and board[r - 1][c + 1] == piece and board[r - 2][c + 2] == piece and board[r - 3][c + 3] == piece:
+                if self.board[r][c] == piece and self.board[r - 1][c + 1] == piece and self.board[r - 2][c + 2] == piece and self.board[r - 3][c + 3] == piece:
                     return True
 
-    def is_terminal_node(self, board):
+    def is_terminal_node(self):
         # Check for end via win or via no moves left
-        return self.winning_move(board, P1_PIECE) or self.winning_move(board, P2_PIECE) or len(self.get_valid_locations(board)) == 0
+        return self.winning_move(P1_PIECE) or self.winning_move(P2_PIECE) or len(self.get_valid_locations()) == 0
 
-    def print_board(board):
-        print(np.flip(board, 0))
+    def print_board(self):
+        print(np.flip(self.board, 0))
         return 0
