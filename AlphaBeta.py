@@ -1,8 +1,5 @@
 from Game import Game
 from random import randint
-#TO DO
-#RANDOM TIE BREAK
-#TERMINAL STATE
 
 
 P1_PIECE = 1
@@ -16,8 +13,8 @@ MAX = 1000
 
 
 class AB:
-    def __init__(self, game, depth, heur):
-        self.game = game
+    def __init__(self, depth, heur):
+        self.game = None
         self.depth = depth
         self.heur = heur
 
@@ -27,14 +24,14 @@ class AB:
             return (500 * self.game.game_score()) + depth
         
         if depth == 0:
-            if player == 1:
-                if self.heur == "3inrow":
-                    return self.game.h_3inrow(1)
-                raise Exception("Non valid heur")
-            else:
-                if self.heur == "3inrow":
-                    return self.game.h_3inrow(1)
-                raise Exception("Non valid heur")
+            if self.heur == "3inrow":
+                return self.game.h_3inrow(1)
+            elif self.heur == "rand":
+                #NOT TRULY RANDOM, WILL FIND WIN OR AVOID LOSS IN DEPTH
+                return self.game.h_rand()
+            raise Exception("Non valid heur")
+
+
 
         if player == 1:
             cur_best = MIN
@@ -81,10 +78,10 @@ class AB:
                 val = self.ab_search(self.depth - 1, 2, MIN, MAX)
                 if(val>cur_best):
                     best_moves.clear()
-                    best_moves.append(i)
+                    best_moves.append(valid_locations[i])
                     cur_best = val
                 elif(val == cur_best):
-                    best_moves.append(i)
+                    best_moves.append(valid_locations[i])
                 self.game.board = hold_board.copy()
         
             #for i in range(len(best_moves)):
@@ -101,10 +98,10 @@ class AB:
                 val = self.ab_search(self.depth - 1, 1, MIN, MAX)
                 if(val<cur_best):
                     best_moves.clear()
-                    best_moves.append(i)
+                    best_moves.append(valid_locations[i])
                     cur_best = val
                 elif(val == cur_best):
-                    best_moves.append(i)
+                    best_moves.append(valid_locations[i])
                 self.game.board = hold_board.copy()
         
             # for i in range(len(best_moves)):
@@ -113,20 +110,13 @@ class AB:
 
 
 
+# myGame = Game()
 
-myGame = Game()
-
-myAB = AB(myGame, 3, "3inrow")
+# #Not truly random, will find win or avoid loss at depth 1
+# myAB = AB(5, "3inrow")
+# myAB.game = myGame
 
 #myGame.print_board()
-myGame.drop_piece(1, 1)
-myGame.drop_piece(1, 1)
-myGame.drop_piece(1, 1)
-myGame.drop_piece(4, 1)
-myGame.drop_piece(5, 1)
-myGame.drop_piece(6, 1)
-myGame.drop_piece(5, 1)
-myGame.drop_piece(6, 1)
 # myGame.drop_piece(2, 1)
 # myGame.drop_piece(5, 2)
 # myGame.drop_piece(4, 1)
@@ -143,6 +133,9 @@ myGame.drop_piece(6, 1)
 # myGame.drop_piece(3, 2)
 # myGame.drop_piece(4, 1)
 # myGame.drop_piece(4, 2)
-myGame.print_board()
-myAB.find_move(1)
-myGame.print_board()
+
+# myGame.drop_piece(4, 1)
+# myGame.drop_piece(1, 1)
+# myGame.drop_piece(4, 1)
+# myAB.find_move(1)
+# myGame.print_board()

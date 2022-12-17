@@ -77,6 +77,11 @@ class Game:
         print(np.flip(self.board, 0))
         return 0
 
+    def h_rand(self):
+        #This is random because built into the decision 
+        #Algs is to randomly choose equal values
+        return 0
+
     def h_3inrow(self, piece):
 
         num3inrow = 0
@@ -90,46 +95,30 @@ class Game:
             for r in range(ROW_COUNT):
                 if self.board[r][c] == piece and self.board[r][c + 1] == piece and self.board[r][c + 2] == piece:
                     num3inrow += 1
-
-        # Check vertical locations for win
-        for c in range(COL_COUNT):
-            for r in range(ROW_COUNT - 2):
-                if self.board[r][c] == piece and self.board[r + 1][c] == piece and self.board[r + 2][c] == piece:
-                    num3inrow += 1
-
-        # Check positive-slope diagonals for win
-        for c in range(COL_COUNT - 2):
-            for r in range(ROW_COUNT - 2):
-                if self.board[r][c] == piece and self.board[r + 1][c + 1] == piece and self.board[r + 2][c + 2] == piece:
-                    num3inrow += 1
-
-        # Check negative-slope diagonals for win
-        for c in range(COL_COUNT - 2):
-            for r in range(2, ROW_COUNT):
-                if self.board[r][c] == piece and self.board[r - 1][c + 1] == piece and self.board[r - 2][c + 2] == piece:
-                    num3inrow += 1
-
-        
-        for c in range(COL_COUNT - 2):
-            for r in range(ROW_COUNT):
                 if self.board[r][c] == piece2 and self.board[r][c + 1] == piece2 and self.board[r][c + 2] == piece2:
                     num3inrow -= 1
 
         # Check vertical locations for win
         for c in range(COL_COUNT):
             for r in range(ROW_COUNT - 2):
+                if self.board[r][c] == piece and self.board[r + 1][c] == piece and self.board[r + 2][c] == piece:
+                    num3inrow += 1
                 if self.board[r][c] == piece2 and self.board[r + 1][c] == piece2 and self.board[r + 2][c] == piece2:
                     num3inrow -= 1
 
         # Check positive-slope diagonals for win
         for c in range(COL_COUNT - 2):
             for r in range(ROW_COUNT - 2):
+                if self.board[r][c] == piece and self.board[r + 1][c + 1] == piece and self.board[r + 2][c + 2] == piece:
+                    num3inrow += 1
                 if self.board[r][c] == piece2 and self.board[r + 1][c + 1] == piece2 and self.board[r + 2][c + 2] == piece2:
                     num3inrow -= 1
 
         # Check negative-slope diagonals for win
         for c in range(COL_COUNT - 2):
             for r in range(2, ROW_COUNT):
+                if self.board[r][c] == piece and self.board[r - 1][c + 1] == piece and self.board[r - 2][c + 2] == piece:
+                    num3inrow += 1
                 if self.board[r][c] == piece2 and self.board[r - 1][c + 1] == piece2 and self.board[r - 2][c + 2] == piece2:
                     num3inrow -= 1
 
