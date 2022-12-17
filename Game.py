@@ -17,8 +17,11 @@ class Game:
         board = np.zeros((ROW_COUNT, COL_COUNT))
         return board
 
-    def drop_piece(self, row, col, piece):
-        self.board[row][col] = piece
+    def drop_piece(self, col, piece):
+        for i in range(ROW_COUNT):
+            if self.board[i][col] == 0:
+                self.board[i][col] = piece
+                return
 
     def is_valid_location(self, col):
         return self.board[ROW_COUNT - 1][col] == 0
