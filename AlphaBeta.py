@@ -24,7 +24,7 @@ class AB:
     def ab_search(self, depth, player, alpha, beta):
         
         if (self.game.is_terminal_node()):
-            return (500 * self.game.game_score())
+            return (500 * self.game.game_score()) + depth
         
         if depth == 0:
             if player == 1:
@@ -87,9 +87,9 @@ class AB:
                     best_moves.append(i)
                 self.game.board = hold_board.copy()
         
-            #for i in range(len(best_moves)):
-            #    self.game.drop_piece(best_moves[i], 1)
-            self.game.drop_piece(best_moves[randint(0, len(best_moves) - 1)], 1)
+            for i in range(len(best_moves)):
+                self.game.drop_piece(best_moves[i], 1)
+            #self.game.drop_piece(best_moves[randint(0, len(best_moves) - 1)], 1)
 
         else:
             cur_best = MAX
@@ -116,7 +116,7 @@ class AB:
 
 myGame = Game()
 
-myAB = AB(myGame, 4, "3inrow")
+myAB = AB(myGame, 3, "3inrow")
 
 #myGame.print_board()
 myGame.drop_piece(1, 1)
