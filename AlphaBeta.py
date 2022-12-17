@@ -87,9 +87,9 @@ class AB:
                     best_moves.append(i)
                 self.game.board = hold_board.copy()
         
-            for i in range(len(best_moves)):
-                self.game.drop_piece(best_moves[i], 1)
-            #self.game.drop_piece(best_moves[randint(0, len(best_moves) - 1)], 1)
+            #for i in range(len(best_moves)):
+            #    self.game.drop_piece(best_moves[i], 1)
+            self.game.drop_piece(best_moves[randint(0, len(best_moves) - 1)], 1)
 
         else:
             cur_best = MAX
