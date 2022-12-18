@@ -27,18 +27,18 @@ class MCTS:
     def run_mcts(self, allowed_time):
         # Copy the initial board state and expand it
         root_state = self.game.board.copy()
-        root_player = 1
-        self.expand(root_state)
+        root_state_encoded = self.encode_array(root_state)
+        self.expand(root_state_encoded)
 
         time_end = time.time() + allowed_time
         while time.time() < time_end:
             # Run an iteration
-            self.run_iteration(root_state, root_player)
+            self.run_iteration(root_state)
             # Reset the board
             self.game.board = root_state
 
     # Does 1 run through the MCTS tree
-    def run_iteration(self, root_state, root_player):
+    def run_iteration(self, root_state):
         res_state = self.traverse(root_state)
         self.expand(res_state)
         self.simulate(res_state)
@@ -47,6 +47,9 @@ class MCTS:
         self.current_path = []
         current_state = root_state
         while True:
+            # Encode current state
+            current_state = self.encode_array(current_state)
+
             self.current_path.append(current_state)
             if self.game.is_terminal_node():
                 return current_state
@@ -91,7 +94,8 @@ class MCTS:
         for action in available_actions:
             self.state_dict[state][2].append(action)
             # Need to change piece depending on who's turn it is
-            self.state_dict[state][3].append(self.game.successor(action, self.piece))
+            successor_state = self.game.successor(action, self.piece)
+            self.state_dict[state][3].append(self.encode_array(successor_state))
 
     def ucb_evaluate(self, parent_state, parent_state_player):
         best_ucb_score = 0
@@ -132,6 +136,13 @@ class MCTS:
             return (term1 + term2)
         else:
             return (term1 - term2)
+
+    def encode_array(self, arr):
+        encoded_res = []
+        for i in range(ROW_COUNT):
+            for j in range(COL_COUNT):
+                encoded_res.append(arr[i][j])
+        return encoded_res
 
     # Given a state and a player to move, finds the best move and drops piece
     def find_move(self, player):
