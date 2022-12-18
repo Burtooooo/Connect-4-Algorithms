@@ -24,11 +24,17 @@ class AB:
             return (500 * self.game.game_score()) + depth
         
         if depth == 0:
-            if self.heur == "3inrow":
-                return self.game.h_3inrow(1)
+            if self.heur == "3inrow" or self.heur == "3row+middle":
+                return self.game.h_3inrow()
             elif self.heur == "rand":
                 #NOT TRULY RANDOM, WILL FIND WIN OR AVOID LOSS IN DEPTH
                 return self.game.h_rand()
+            elif self.heur == "touching":
+                return self.game.h_touching()
+            elif self.heur == "middle" or self.heur == "center":
+                return self.game.h_middle()
+            elif self.heur == "2x1" or self.heur == "2x1+middle":
+                return self.game.h_2x1()
             raise Exception("Non valid heur")
 
 
@@ -84,9 +90,34 @@ class AB:
                     best_moves.append(valid_locations[i])
                 self.game.board = hold_board.copy()
         
-            #for i in range(len(best_moves)):
-            #    self.game.drop_piece(best_moves[i], 1)
-            self.game.drop_piece(best_moves[randint(0, len(best_moves) - 1)], 1)
+            if self.heur == "middle" or self.heur == "3row+middle" or self.heur == "2x1+middle":
+                most_middle = 7
+                best_best_moves = []
+                for i in range(len(best_moves)):
+                    val = abs(best_moves[i] - 3)
+                    if(val < most_middle):
+                        most_middle = val
+                        best_best_moves.clear()
+                        best_best_moves.append(best_moves[i])
+                    if(val == most_middle):
+                        best_best_moves.append(best_moves[i])
+                self.game.drop_piece(best_best_moves[randint(0, len(best_best_moves) - 1)], 1)
+            elif self.heur == "center":
+                most_middle = 100
+                best_best_moves = []
+                for i in range(len(best_moves)):
+                    val = pow(abs(best_moves[i] - 3), 2) + pow(abs(self.game.get_row_num(best_moves[i]) - 2.5), 2)
+                    if(val < most_middle):
+                        most_middle = val
+                        best_best_moves.clear()
+                        best_best_moves.append(best_moves[i])
+                    if(val == most_middle):
+                        best_best_moves.append(best_moves[i])
+                self.game.drop_piece(best_best_moves[randint(0, len(best_best_moves) - 1)], 1)
+            else:
+                #for i in range(len(best_moves)):
+                #self.game.drop_piece(best_moves[i], 1)
+                self.game.drop_piece(best_moves[randint(0, len(best_moves) - 1)], 1)
 
         else:
             cur_best = MAX
@@ -103,39 +134,49 @@ class AB:
                 elif(val == cur_best):
                     best_moves.append(valid_locations[i])
                 self.game.board = hold_board.copy()
-        
-            # for i in range(len(best_moves)):
-            #     self.game.drop_piece(best_moves[i], 2)
-            self.game.drop_piece(best_moves[randint(0, len(best_moves) - 1)], 2)
+   
+            if self.heur == "middle" or self.heur == "3row+middle" or self.heur == "2x1+middle":
+                most_middle = 7
+                best_best_moves = []
+                for i in range(len(best_moves)):
+                    val = abs(best_moves[i] - 3)
+                    if(val < most_middle):
+                        most_middle = val
+                        best_best_moves.clear()
+                        best_best_moves.append(best_moves[i])
+                    if(val == most_middle):
+                        best_best_moves.append(best_moves[i])
+                self.game.drop_piece(best_best_moves[randint(0, len(best_best_moves) - 1)], 2)
+            elif self.heur == "center":
+                most_middle = 100
+                best_best_moves = []
+                for i in range(len(best_moves)):
+                    val = pow(abs(best_moves[i] - 3), 2) + pow(abs(self.game.get_row_num(best_moves[i]) - 2.5), 2)
+                    if(val < most_middle):
+                        most_middle = val
+                        best_best_moves.clear()
+                        best_best_moves.append(best_moves[i])
+                    if(val == most_middle):
+                        best_best_moves.append(best_moves[i])
+                self.game.drop_piece(best_best_moves[randint(0, len(best_best_moves) - 1)], 1)
+            else:    
+                # for i in range(len(best_moves)):
+                #     self.game.drop_piece(best_moves[i], 2)
+                self.game.drop_piece(best_moves[randint(0, len(best_moves) - 1)], 2)
 
 
 
 # myGame = Game()
-
-# #Not truly random, will find win or avoid loss at depth 1
-# myAB = AB(5, "3inrow")
+# myAB = AB(1, "center")
 # myAB.game = myGame
 
-#myGame.print_board()
-# myGame.drop_piece(2, 1)
-# myGame.drop_piece(5, 2)
-# myGame.drop_piece(4, 1)
-# myGame.drop_piece(5, 2)
-# myGame.drop_piece(3, 1)
 # myGame.drop_piece(3, 2)
-# myGame.drop_piece(4, 1)
 # myGame.drop_piece(2, 2)
 # myGame.drop_piece(2, 1)
-# myGame.drop_piece(2, 2)
-# myGame.drop_piece(6, 1)
-# myGame.drop_piece(5, 2)
-# myGame.drop_piece(3, 1)
 # myGame.drop_piece(3, 2)
-# myGame.drop_piece(4, 1)
-# myGame.drop_piece(4, 2)
+# myGame.drop_piece(3, 2)
+# myGame.drop_piece(3, 1)
 
-# myGame.drop_piece(4, 1)
-# myGame.drop_piece(1, 1)
-# myGame.drop_piece(4, 1)
+
 # myAB.find_move(1)
 # myGame.print_board()
