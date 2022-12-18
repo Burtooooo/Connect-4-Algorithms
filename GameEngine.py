@@ -70,7 +70,7 @@ class Engine:
                         else:
                             ties += 1
                         break
-        
+        self.game.board = hold_board.copy()
         score = score / num_games
         return (str(score) + " P1W: " + str(p1wins) + "  P2W: " + str(p2wins) + "  Ties: " + str(ties))
 
@@ -138,20 +138,24 @@ class Engine:
                         else:
                             ties += 1
                         break
+        self.game.board = hold_board.copy()
         
         score = score / num_games
+        
         return (str(score) + " P1W: " + str(p1wins) + "  P2W: " + str(p2wins) + "  Ties: " + str(ties))
 
 
 myEngine = Engine()
-ab1 = AB(3, "2x1+middle")
-ab2 = AB(3, "rand")
+# ab1 = AB(3, "2x1+middle")
+# ab2 = AB(3, "rand")
 mcts1 = MCTS()
 mcts2 = MCTS()
 mcts1.game = myEngine.game
 mcts2.game = myEngine.game
 mcts1.run_mcts(10)
 mcts2.run_mcts(10)
-print(myEngine.play(mcts1, mcts2, 1))
+print(myEngine.play(mcts1, mcts2, 10))
+print(myEngine.play(mcts2, mcts1, 10))
 
-# print(myEngine.play(ab1, ab2, 1000))
+# print(myEngine.play(ab1, ab2, 20))
+# print(myEngine.play(ab2, ab1, 20))

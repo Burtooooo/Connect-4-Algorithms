@@ -37,7 +37,7 @@ class MCTS:
             # Reset the board
             self.game.board = root_state
 
-        print(self.state_dict)
+        #print(self.state_dict)
 
     # Does 1 run through the MCTS tree
     def run_iteration(self, root_state):
@@ -72,6 +72,7 @@ class MCTS:
             self.get_child_actions_and_states(state)
 
     def simulate(self, state):
+        hold_board = self.game.board.copy()
         while not self.game.is_terminal_node():
             # Get a list of available columns (aka moves/actions) to drop a piece into
             available_actions = self.game.get_valid_locations()
@@ -80,10 +81,12 @@ class MCTS:
             self.game.drop_piece(selected_action, self.piece)
             # Switch piece
             self.piece = P2_PIECE if self.piece == P1_PIECE else P2_PIECE
+        
 
         # Get payoff and update MCTS
         payoff = self.game.game_score()
         self.update(payoff)
+        self.game.board = hold_board.copy()
 
     def update(self, payoff):
         for state in self.current_path:
@@ -98,6 +101,7 @@ class MCTS:
             # Need to change piece depending on who's turn it is
             successor_state = self.game.successor(action, self.piece)
             self.state_dict[state][3].append(self.encode_array(successor_state))
+            #self.state_dict[self.encode_array(successor_state)] = [0,0,[],[]]
 
     def ucb_evaluate(self, parent_state, parent_state_player):
         best_ucb_score = 0
@@ -141,8 +145,10 @@ class MCTS:
 
     def encode_array(self, arr):
         encoded_res = []
-        for i in range(ROW_COUNT):
-            for j in range(COL_COUNT):
+        # rows = len(arr)
+        # cols = len(arr[0])
+        for i in range(ROW_COUNT): #rows):
+            for j in range(COL_COUNT): #cols):
                 encoded_res.append(arr[i][j])
         return str(encoded_res)
 
@@ -162,17 +168,25 @@ class MCTS:
         # print("state dict")
         # print(encoded_state)
         # print(self.state_dict[encoded_state][3])
+        possible_actions = []
 
         for index, next_state in enumerate(self.state_dict[encoded_state][3]):
-            next_state_score = self.state_dict[encoded_state][0] / self.state_dict[next_state][1]
-            if player == 1:
-                if next_state_score > best_score:
-                    best_score = next_state_score
-                    best_action = self.state_dict[encoded_state][2][index]
+            if next_state in self.state_dict.keys():
+                next_state_score = self.state_dict[encoded_state][0] / self.state_dict[next_state][1]
+                if player == 1:
+                    if next_state_score > best_score:
+                        best_score = next_state_score
+                        best_action = self.state_dict[encoded_state][2][index]
+                else:
+                    if next_state_score < best_score:
+                        best_score = next_state_score
+                        best_action = self.state_dict[encoded_state][2][index]
             else:
-                if next_state_score < best_score:
-                    best_score = next_state_score
-                    best_action = self.state_dict[encoded_state][2][index]
+                #possible_actions.append(self.state_dict[encoded_state][2][index])
+                best_action = self.state_dict[encoded_state][2][index]
+        
+        if len(possible_actions) > 0:
+            best_action = random.choice(possible_actions)
 
         # Drop piece according to best move
         # print("best action?")
