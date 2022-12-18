@@ -34,9 +34,10 @@ class Game:
     def successor(self, col, piece):
         successor_board = self.board.copy()
         for i in range(ROW_COUNT):
-            if self.board[i][col] == 0:
-                self.board[i][col] = piece
-                return
+            if successor_board[i][col] == 0:
+                successor_board[i][col] = piece
+                break
+        
         return successor_board
 
     def get_valid_locations(self):

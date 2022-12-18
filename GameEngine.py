@@ -1,5 +1,6 @@
 from Game import Game
 from AlphaBeta import AB
+from MCTS import MCTS
 
 class Engine:
     def __init__(self):
@@ -145,7 +146,12 @@ class Engine:
 myEngine = Engine()
 ab1 = AB(3, "2x1+middle")
 ab2 = AB(3, "rand")
+mcts1 = MCTS()
+mcts2 = MCTS()
+mcts1.game = myEngine.game
+mcts2.game = myEngine.game
+mcts1.run_mcts(10)
+mcts2.run_mcts(10)
+print(myEngine.play(mcts1, mcts2, 1))
 
-print(myEngine.play(ab1, ab2, 1000))
-            
-
+# print(myEngine.play(ab1, ab2, 1000))

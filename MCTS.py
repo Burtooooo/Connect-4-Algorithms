@@ -16,7 +16,7 @@ class MCTS:
         self.piece = P1_PIECE
         # Array for current traversal path
         self.current_path = []
-        # Dictionary mapping { State: [Reward, Num Visits, Actions, States] }
+        # Dictionary mapping { State: [Reward, Num Visits, Actions, Child States] }
         self.state_dict = {}
         # Dictionary mapping { State: [All Possible Next Actions] }
         self.action_dict = {}
@@ -36,6 +36,8 @@ class MCTS:
             self.run_iteration(root_state)
             # Reset the board
             self.game.board = root_state
+
+        print(self.state_dict)
 
     # Does 1 run through the MCTS tree
     def run_iteration(self, root_state):
@@ -72,7 +74,7 @@ class MCTS:
     def simulate(self, state):
         while not self.game.is_terminal_node():
             # Get a list of available columns (aka moves/actions) to drop a piece into
-            available_actions = Game.get_valid_locations()
+            available_actions = self.game.get_valid_locations()
             selected_action = random.choice(available_actions)
             # Drop piece and advance game
             self.game.drop_piece(selected_action, self.piece)
@@ -142,11 +144,13 @@ class MCTS:
         for i in range(ROW_COUNT):
             for j in range(COL_COUNT):
                 encoded_res.append(arr[i][j])
-        return encoded_res
+        return str(encoded_res)
 
     # Given a state and a player to move, finds the best move and drops piece
     def find_move(self, player):
+        # print(self.state_dict)
         state = self.game.board
+        encoded_state = self.encode_array(state)
         best_score = 0
         best_action = None
 
@@ -155,16 +159,21 @@ class MCTS:
         else:
             best_score = float("inf")
 
-        for index, next_state in enumerate(self.state_dict[state][3]):
-            next_state_score = self.state_dict[state][0] / self.state_dict[next_state][1]
+        # print("state dict")
+        # print(encoded_state)
+        # print(self.state_dict[encoded_state][3])
+
+        for index, next_state in enumerate(self.state_dict[encoded_state][3]):
+            next_state_score = self.state_dict[encoded_state][0] / self.state_dict[next_state][1]
             if player == 1:
                 if next_state_score > best_score:
                     best_score = next_state_score
-                    best_action = self.state_dict[state][2][index]
+                    best_action = self.state_dict[encoded_state][2][index]
             else:
                 if next_state_score < best_score:
                     best_score = next_state_score
-                    best_action = self.state_dict[state][2][index]
+                    best_action = self.state_dict[encoded_state][2][index]
 
         # Drop piece according to best move
+        # print("best action?")
         self.game.drop_piece(best_action, player)
