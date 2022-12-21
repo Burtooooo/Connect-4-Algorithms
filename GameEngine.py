@@ -153,8 +153,9 @@ mcts1 = MCTS2()
 mcts2 = MCTS2()
 mcts1.game = myEngine.game
 mcts2.game = myEngine.game
-mcts1.run_mcts(10)
-mcts2.run_mcts(10)
+mcts1.run_mcts(1)
+print("mcts2 running now")
+mcts2.run_mcts(1)
 print(myEngine.play(mcts1, mcts2, 10))
 print(myEngine.play(mcts2, mcts1, 10))
 
