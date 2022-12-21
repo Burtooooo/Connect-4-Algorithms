@@ -1,7 +1,7 @@
 import time
 import math
 import random
-import numpy
+
 from Game import Game
 
 P1_PIECE = 1
@@ -10,47 +10,56 @@ P2_PIECE = 2
 ROW_COUNT = 6
 COL_COUNT = 7
 
+class Node:
+    def __init__(self):
+        self.state = None
+
+        self.parent = None
+        self.moves = []
+        self.children = []
+
+        self.visits = 0
+        self.reward = 0
+
 class MCTS:
     def __init__(self):
         self.game = None
         self.piece = P1_PIECE
-        # Array for current traversal path
+
+        self.encoded_state_dict = {} # Encoded state -> Node
         self.current_path = []
-        # Dictionary mapping { State: [Reward, Num Visits, Actions, Child States] }
-        self.state_dict = {}
-        # Dictionary mapping { State: [All Possible Next Actions] }
-        self.action_dict = {}
-        # Dictionary mapping { State: [All Possible Next States] }
-        self.children_dict = {}
 
-    # In the allowed time, generate an MCTS tree
     def run_mcts(self, allowed_time):
-        # Copy the initial board state and expand it
+        # Make a copy of the initial game board for use
         root_state = self.game.board.copy()
+        # Encode the root position state into MCTS-enabled state
         root_state_encoded = self.encode_state(root_state)
-        self.expand(root_state_encoded)
+        # Expand the initial root state
+        self.expand(root_state, root_state_encoded)
 
+        # Run MCTS iterations until out of time
         time_end = time.time() + allowed_time
         while time.time() < time_end:
-            print("running")
             # Run an iteration
             self.run_iteration(root_state)
-            # Reset the board
-            # self.game.board = root_state
 
-        print(self.state_dict)
+        print(len(self.encoded_state_dict))
 
-    # Does 1 run through the MCTS tree
     def run_iteration(self, root_state):
-        # Create a board copy
-        hold_board = self.game.board.copy()
+        # Create a copy of the board to reset to later
+        reset_board = self.game.board.copy()
 
+        # Get a state from traversal, then expand/simulate it
         res_state = self.traverse(root_state)
-        self.expand(res_state)
-        self.simulate(res_state)
+        res_state_encoded = self.encode_state(res_state)
+        # self.game.board = res_state
         
-        # Reset the board
-        self.game.board = hold_board
+        self.expand(res_state, res_state_encoded)
+        self.simulate(res_state, res_state_encoded)
+
+        # Reset board
+        self.game.board = reset_board
+        self.piece = P1_PIECE
 
     def traverse(self, root_state):
         self.current_path = []
@@ -58,64 +67,106 @@ class MCTS:
 
         while True:
             # Encode current state
-            # Check if state already encoded
-            if not isinstance(current_state, str):
-                current_state = self.encode_state(current_state)
+            current_state_encoded = self.encode_state(current_state)
+            # print("current state " + str(current_state_encoded))
 
-            self.current_path.append(current_state)
-            if self.game.is_terminal_node():
+            self.current_path.append(current_state_encoded)
+
+            current_state_game = Game()
+            current_state_game.board = current_state
+            # current_state_game.print_board()
+            if current_state_game.is_terminal_node():
+
+            # self.game.print_board()
+            # if self.game.is_terminal_node():
+                # If the game is over, return the unencoded state
                 return current_state
             else:
-                available_next_actions = self.state_dict[current_state][2]
-                available_next_states = self.state_dict[current_state][3]
-                for (index, next_state) in enumerate(available_next_states):
-                    if next_state not in self.state_dict:
-                        # drop piece
-                        self.game.drop_piece(available_next_actions[index], self.piece)
-                        self.current_path.append(next_state)
-                        return next_state
-                # Run UCB-2
-                current_state = self.ucb_evaluate(current_state, self.piece)
-            # Switch player piece
-            self.piece = P2_PIECE if self.piece == P1_PIECE else P2_PIECE
+                # We are at an expanded nonterminal state, find the next state to return
+                node = self.encoded_state_dict[current_state_encoded]
+                for (index, child_state_encoded) in enumerate(node.children):
+                    if child_state_encoded not in self.encoded_state_dict:
+                        # Proceed to this unexpanded child state
+                        self.game.drop_piece(node.moves[index], self.piece)
+                        self.current_path.append(child_state_encoded)
+                        self.piece = P2_PIECE if self.piece == P1_PIECE else P1_PIECE
+                        # Return the state of the board, which is the child state
+                        # print("returning")
+                        # print(str(self.game.board))
+                        current_state = self.game.board
+                        return self.game.board
+                    
+                # If there are no unexpanded states, use UCB-2 to pick next state, with current state as parent
+                [move, current_state] = self.ucb_evaluate(current_state, current_state_encoded, self.piece)
+                # Execute the move
+                self.game.drop_piece(move, self.piece)
 
-    def expand(self, state):
-        if state not in self.state_dict:
-            self.state_dict[state] = [0, 0, [], []]
-            self.get_child_actions_and_states(state)
+            # Switch the player piece, turn is over
+            # issue here? p2 takes too many turns?
+            current_state = self.game.board
+            self.piece = P2_PIECE if self.piece == P1_PIECE else P1_PIECE
 
-    def simulate(self, state):
-        # hold_game = self.game.board.copy()
+    def expand(self, state, encoded_state):
+        if encoded_state not in self.encoded_state_dict:
+            # Create new node
+            # print("here")
+            new_node = Node()
+
+            # Set node unencoded state
+            new_node.state = state
+
+            # Populate node's moves
+            new_node.moves = self.game.get_valid_locations()
+            # Populate node's children (must be in same order as moves?)
+            for move in new_node.moves:
+                successor_state = self.game.successor(move, self.piece) # self.piece?
+                successor_state_encoded = self.encode_state(successor_state)
+                new_node.children.append(successor_state_encoded)
+
+            # Update visits
+            new_node.visits += 1
+
+            # Update encoded_state_dict
+            # print("NOW ENCODING")
+            # print(encoded_state)
+            # print(new_node.state)
+            self.encoded_state_dict[encoded_state] = new_node
+
+    def simulate(self, state, encoded_state):
+        # Play a game randomly to the end
         while not self.game.is_terminal_node():
-            # Get a list of available columns (aka moves/actions) to drop a piece into
-            available_actions = self.game.get_valid_locations()
-            selected_action = random.choice(available_actions)
+            available_moves = self.game.get_valid_locations()
+            selected_move = random.choice(available_moves)
+            
             # Drop piece and advance game
-            self.game.drop_piece(selected_action, self.piece)
+            self.game.drop_piece(selected_move, self.piece)
             # Switch piece
-            self.piece = P2_PIECE if self.piece == P1_PIECE else P2_PIECE
+            self.piece = P2_PIECE if self.piece == P1_PIECE else P1_PIECE
 
-        # Get payoff and update MCTS
+        # Game over, get payoff and update
         payoff = self.game.game_score()
-        # self.game.board = hold_game
         self.update(payoff)
 
     def update(self, payoff):
-        for state in self.current_path:
-            entry = self.state_dict[state]
-            entry[0] += payoff
-            entry[1] += 1
+        # print("current path: " + str(self.current_path))
+        for encoded_state in self.current_path:
+            node = self.encoded_state_dict[encoded_state]
+            node.reward += payoff
+            node.visits += 1
 
-    def get_child_actions_and_states(self, state):
-        available_actions = self.game.get_valid_locations()
-        for action in available_actions:
-            self.state_dict[state][2].append(action)
-            # Need to change piece depending on who's turn it is
-            successor_state = self.game.successor(action, self.piece)
-            self.state_dict[state][3].append(self.encode_state(successor_state))
+    def encode_state(self, state):
+        # Convert a numpy state into a string
+        # print(state)
+        encoded_string = ""
+        for i in range(ROW_COUNT):
+            for j in range(COL_COUNT):
+                encoded_string += str(state[i][j])
+                encoded_string += " "
+        return encoded_string
 
-    def ucb_evaluate(self, parent_state, parent_state_player):
+    def ucb_evaluate(self, parent_state, parent_state_encoded, parent_state_player):
         best_ucb_score = 0
+        best_ucb_move = None
         best_ucb_state = None
 
         if parent_state_player == 1:
@@ -123,25 +174,32 @@ class MCTS:
         else:
             best_ucb_score = float('inf')
 
-        for (index, child_state) in enumerate(self.state_dict[parent_state][3]):
-            child_state_score = self.ucb_score(parent_state, parent_state_player, child_state)
+        node = self.encoded_state_dict[parent_state_encoded]
+        for (index, child_state_encoded) in enumerate(node.children):
+            # Get the move that obtains this child state
+            move_to_child = node.moves[index]
+
+            # Encode the child state and score it
+            child_state_score = self.ucb_score(parent_state_encoded, parent_state_player, child_state_encoded)
             if parent_state_player == 1:
                 if child_state_score >= best_ucb_score:
                     best_ucb_score = child_state_score
-                    best_ucb_state = child_state
+                    best_ucb_move = move_to_child
+                    best_ucb_state = child_state_encoded
             else:
                 if child_state_score <= best_ucb_score:
                     best_ucb_score = child_state_score
-                    best_ucb_state = child_state
+                    best_ucb_move = move_to_child
+                    best_ucb_state = child_state_encoded
 
-        return best_ucb_state
+        return [best_ucb_move, self.encoded_state_dict[best_ucb_state].state]
 
-    def ucb_score(self, parent_state, parent_state_player, child_state):
-        parent_state_info = self.state_dict[parent_state]
-        child_state_info = self.state_dict[child_state]
-        parent_state_visits = parent_state_info[1]
-        child_state_reward = child_state_info[0]
-        child_state_visits = child_state_info[1]
+    def ucb_score(self, parent_state_encoded, parent_state_player, child_state_encoded):
+        parent_node = self.encoded_state_dict[parent_state_encoded]
+        child_node = self.encoded_state_dict[child_state_encoded]
+        parent_state_visits = parent_node.visits
+        child_state_reward = child_node.reward
+        child_state_visits = child_node.visits
 
         if child_state_visits == 0:
             return 0
@@ -154,17 +212,22 @@ class MCTS:
         else:
             return (term1 - term2)
 
-    def encode_state(self, state):
-        encoded_string = ""
-        for i in range(ROW_COUNT):
-            for j in range(COL_COUNT):
-                encoded_string += str(state[i][j])
-        return encoded_string
-
-    # Given a state and a player to move, finds the best move and drops piece
     def find_move(self, player):
-        state = self.game.board
-        encoded_state = self.encode_state(state)
+        # Get state from current board and encode
+        parent_state = self.game.board
+        parent_state_encoded = self.encode_state(parent_state)
+
+        # Check to make sure parent state is in the dictionary, if not, play randomly
+        if parent_state_encoded not in self.encoded_state_dict:
+            # Get a random action
+            parent_game = Game()
+            parent_game.board = parent_state
+            valid_actions = parent_game.get_valid_locations()
+            self.game.drop_piece(random.choice(valid_actions), player)
+            return
+
+        parent_node = self.encoded_state_dict[parent_state_encoded]
+        
         best_score = 0
         best_action = None
 
@@ -173,16 +236,27 @@ class MCTS:
         else:
             best_score = float("inf")
 
-        for index, next_state in enumerate(self.state_dict[encoded_state][3]):
-            next_state_score = self.state_dict[encoded_state][0] / self.state_dict[next_state][1]
-            if player == 1:
-                if next_state_score > best_score:
-                    best_score = next_state_score
-                    best_action = self.state_dict[encoded_state][2][index]
+        for index, child_state_encoded in enumerate(parent_node.children):
+            if child_state_encoded in self.encoded_state_dict:
+                child_node = self.encoded_state_dict[child_state_encoded]
+                child_state_score = child_node.reward / child_node.visits
+
+                if player == 1:
+                    if child_state_score > best_score:
+                        best_score = child_state_score
+                        best_action = parent_node.moves[index]
+                else:
+                    if child_state_score < best_score:
+                        best_score = child_state_score
+                        best_action = parent_node.moves[index]
             else:
-                if next_state_score < best_score:
-                    best_score = next_state_score
-                    best_action = self.state_dict[encoded_state][2][index]
+                # do the same thing
+                # Get a random action
+                parent_game = Game()
+                parent_game.board = parent_state
+                valid_actions = parent_game.get_valid_locations()
+                self.game.drop_piece(random.choice(valid_actions), player)
+                return
 
         # Drop piece according to best move
         self.game.drop_piece(best_action, player)
