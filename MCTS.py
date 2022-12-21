@@ -43,8 +43,6 @@ class MCTS:
             # Run an iteration
             self.run_iteration(root_state)
 
-        print(len(self.encoded_state_dict))
-
     def run_iteration(self, root_state):
         # Create a copy of the board to reset to later
         reset_board = self.game.board.copy()
