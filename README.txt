@@ -31,3 +31,6 @@ To interpret the results, the first number can be read as the expected value of 
 The number following P1W is the number of wins for Player 1 over the amount of iterations run,
 whereas the number following P2W is the number of wins for Player 2 over the amout of iterations run.
 This is all followed by the number of ties encountered in the iterations run.
+
+NOTE: The heuristics involving the middle can turn into deterministic strategies depending on what the game is, so it might get some unusual
+results when matched up against the Monte-Carlo agent.
