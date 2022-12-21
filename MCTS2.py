@@ -50,6 +50,7 @@ class MCTS2:
         # Get a state from traversal, then expand/simulate it
         res_state = self.traverse(root_state)
         res_state_encoded = self.encode_state(res_state)
+        
         self.expand(res_state, res_state_encoded)
         self.simulate(res_state, res_state_encoded)
 
@@ -78,16 +79,18 @@ class MCTS2:
                         # Proceed to this unexpanded child state
                         self.game.drop_piece(node.moves[index], self.piece)
                         self.current_path.append(child_state_encoded)
+                        self.piece = P2_PIECE if self.piece == P1_PIECE else P1_PIECE
                         # Return the state of the board, which is the child state
                         return self.game.board
                     
                 # If there are no unexpanded states, use UCB-2 to pick next state, with current state as parent
                 [move, current_state] = self.ucb_evaluate(current_state, current_state_encoded, self.piece)
-                # Execute the move 
+                # Execute the move
                 self.game.drop_piece(move, self.piece)
 
             # Switch the player piece, turn is over
-            self.piece = self.piece = P2_PIECE if self.piece == P1_PIECE else P2_PIECE
+            # issue here? p2 takes too many turns?
+            self.piece = P2_PIECE if self.piece == P1_PIECE else P1_PIECE
 
     def expand(self, state, encoded_state):
         if encoded_state not in self.encoded_state_dict:
@@ -120,7 +123,7 @@ class MCTS2:
             # Drop piece and advance game
             self.game.drop_piece(selected_move, self.piece)
             # Switch piece
-            self.piece = P2_PIECE if self.piece == P1_PIECE else P2_PIECE
+            self.piece = P2_PIECE if self.piece == P1_PIECE else P1_PIECE
 
         # Game over, get payoff and update
         payoff = self.game.game_score()
