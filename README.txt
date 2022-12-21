@@ -1,6 +1,12 @@
+Project Members: David Metrick, John Wahlig, Burton Lyng-Olsen
+
 Usage:
 
 ./Connect4 [iterations] [engine1] [engine2]
+
+OR: To run example tests, which is a Monte Carlo agent with 30 seconds to train versus each heuristic of alpha-beta
+with depth 3,
+run: ./Connect4 testscript
 
 iterations: Number of games to play
 
